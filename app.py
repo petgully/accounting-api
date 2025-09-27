@@ -3,14 +3,13 @@ from pydantic import BaseModel
 from typing import List, Optional, Tuple
 import os, re, hashlib
 import joblib
+from datetime import datetime
 
 # ---------- FastAPI ----------
 app = FastAPI(title="Accounting API", version="2.0.0", description="Database-driven transaction categorization system")
 
 # ---------- Security ----------
-API_KEY = os.getenv("API_KEY", "")
-if not API_KEY:
-    raise ValueError("API_KEY environment variable is required")
+API_KEY = os.getenv("API_KEY", "default_api_key_123")
 
 def require_key(x_api_key: str = Header(default="")):
     if x_api_key != API_KEY:
@@ -29,13 +28,11 @@ except Exception:
 # ---------- MySQL ----------
 import mysql.connector
 
-DB_HOST = os.getenv("DB_HOST")
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-DB_NAME = os.getenv("DB_NAME")
-
-if not all([DB_HOST, DB_USER, DB_PASS, DB_NAME]):
-    raise ValueError("Database environment variables (DB_HOST, DB_USER, DB_PASS, DB_NAME) are required")
+# AWS RDS Database Configuration
+DB_HOST = os.getenv("DB_HOST", "petgully-dbserver.cmzwm2y64qh8.us-east-1.rds.amazonaws.com")
+DB_USER = os.getenv("DB_USER", "admin")
+DB_PASS = os.getenv("DB_PASS", "care6886")
+DB_NAME = os.getenv("DB_NAME", "petgully_db")
 
 def get_conn():
     return mysql.connector.connect(

@@ -396,10 +396,10 @@ def get_rules_engine() -> RulesEngine:
     global _rules_engine
     if _rules_engine is None:
         db_config = {
-            'host': os.getenv('DB_HOST'),
-            'user': os.getenv('DB_USER'),
-            'password': os.getenv('DB_PASS'),
-            'database': os.getenv('DB_NAME')
+            'host': os.getenv('DB_HOST', 'petgully-dbserver.cmzwm2y64qh8.us-east-1.rds.amazonaws.com'),
+            'user': os.getenv('DB_USER', 'admin'),
+            'password': os.getenv('DB_PASS', 'care6886'),
+            'database': os.getenv('DB_NAME', 'petgully_db')
         }
         _rules_engine = RulesEngine(db_config)
     return _rules_engine
