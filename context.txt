@@ -1,0 +1,143 @@
+ACCOUNTING-API SYSTEM - CONTEXT FOR LLM
+
+SYSTEM OVERVIEW:
+This is a database-driven automated bank transaction categorization system designed for a pet grooming business. The system processes bank statements from Google Sheets, applies intelligent categorization using database-stored rules and ML, and learns new rules from manual categorizations.
+
+COMPLETE WORKFLOW:
+
+1. DATA INPUT PHASE:
+   - Bank statements uploaded to Google Sheets in standardized format
+   - Google Apps Script normalizes bank data into consistent format
+   - Transaction data sent to FastAPI application on AWS Lightsail
+
+2. CATEGORIZATION PHASE (Multi-layered approach):
+   
+   A) DATABASE-DRIVEN RULES (Primary - Highest Priority):
+      - Rules stored in MySQL `rules` table with JSON keywords
+      - Salary Detection: Matches employee names with salary keywords
+      - 187+ Keyword Rules covering business expense categories:
+        * Grooming Inventory (Vet India Pharma, Amazon, Nutan Medical, etc.)
+        * Vehicle Subscription (Imobility)
+        * Fuel expenses (Petrol, Diesel, BPCL, etc.)
+        * Office Overhead (Swiggy, Water Tanker, Milk, Garbage, etc.)
+        * Electricity bills
+        * Telecom/Internet (Airtel)
+        * Bank charges (IMPS, TDS)
+        * Loan EMI payments (Bajaj, Godrej, HDFC, etc.)
+        * Admin expenses (Slot Books, Vet Doctor)
+        * Employee welfare (Hostel fees)
+        * Customer refunds
+        * Repair & maintenance (Generator, Plumbing, Water Wash)
+        * Tax & duties (TDS, GST, EPFO)
+      - Rules cached for performance with 5-minute TTL
+      - Auto-learned rules from manual categorizations
+   
+   B) MACHINE LEARNING FALLBACK (Secondary):
+      - Uses TF-IDF vectorization + Logistic Regression
+      - Activated only when no rule matches
+      - Confidence threshold: 0.75 (configurable)
+   
+   C) LLM SUBCATEGORY GENERATION (Tertiary):
+      - OpenAI GPT-4o-mini for subcategory generation
+      - Only when no rule-based subcategory available
+
+3. DATA PROCESSING:
+   - Transaction description normalization
+   - Vendor name extraction
+   - Unique hash generation for deduplication
+   - Confidence scoring for all categorizations
+
+4. VERIFICATION PHASE:
+   - Categorized data sent back to Google Sheets
+   - Manual verification and correction in "Needs_Review" sheet
+   - Human categorizes "Uncategorized" transactions
+
+5. DATABASE STORAGE & RULE LEARNING:
+   - Verified data synced to MySQL with success reporting
+   - Two tables: transactions_raw (original) and transactions_canonical (processed)
+   - Auto-learning: Uncategorized → Manually categorized transactions create new rules
+   - Success message shows: published count + new rules learned
+
+TECHNICAL ARCHITECTURE:
+
+API ENDPOINTS:
+- GET / - API information and status
+- GET /health - Health check with database and rules status
+- POST /classify - Categorize transactions (requires API key)
+- POST /sync - Store verified data and learn rules (requires API key)
+- GET /rule-stats - Get rule statistics (requires API key)
+- POST /refresh-rules - Manually refresh rules cache (requires API key)
+
+KEY FEATURES:
+- Database-driven rules system (no file-based rules)
+- Hot-reload rules system with caching
+- Multi-layered categorization (Rules → ML → LLM)
+- Automatic rule learning from manual categorizations
+- Error handling with graceful fallbacks
+- Security with API key authentication
+- Input validation using Pydantic models
+- Performance optimized with rule caching
+
+DATABASE SCHEMA:
+- rules: Stores categorization rules with JSON keywords
+- salary_rules: Employee name mappings for salary detection
+- categories_main: Main category definitions
+- transactions_raw: Original transaction data
+- transactions_canonical: Processed and categorized transactions
+- Views and stored procedures for analytics
+
+DATA MODELS:
+- Input: RowIn (date, description, amount, balance, account, currency)
+- Output: PredOut (includes vendor, categories, confidence, rule_hit)
+- Sync: SyncRowIn (includes final categorization for storage)
+- Response: SyncResponse (success, published_count, rules_created, message)
+
+BUSINESS CONTEXT:
+- Pet grooming business with specific expense categories
+- Employee salary management (Back Office, Operations, Customer Care teams)
+- Inventory procurement for grooming supplies
+- Vehicle and fuel management
+- Office operations and overhead
+- Financial obligations (loans, taxes, EPFO)
+- Customer service and refunds
+
+RULE LEARNING SYSTEM:
+- Monitors transactions where MainCategorySuggested = "Uncategorized"
+- But FinalMainCategory = manually categorized
+- Extracts keywords from transaction descriptions
+- Creates new rules with medium priority (50)
+- Rules stored as JSON arrays of keywords
+- Frequency tracking for rule effectiveness
+- Auto-learned rules marked with created_by = 'auto_learned'
+
+CONFIGURATION:
+- Environment variables for API keys, database credentials
+- ML threshold configurable (default 0.75)
+- Model files: tfidf.joblib, logreg.joblib
+- Rule cache TTL: 5 minutes
+- Database connection pooling
+
+DEPLOYMENT:
+- AWS Lightsail
+- Docker containerization
+- Environment-based configuration
+- MySQL database with optimized indexes
+- SSL/TLS termination
+
+MAINTENANCE:
+- Rules updatable via database
+- ML models replaceable
+- Database schema supports category management
+- Comprehensive logging and monitoring
+- Health check endpoints
+- Rule statistics and analytics
+
+GOOGLE SHEETS INTEGRATION:
+- BankRaw_Statement → Normalized sheet conversion
+- Classification with database-driven rules
+- Manual review and approval workflow
+- Success reporting with rule learning counts
+- Data validation and formatting
+- Multi-format bank statement support
+
+This system provides intelligent, automated categorization of bank transactions with human verification and continuous learning, specifically designed for a pet grooming business's financial management needs.
