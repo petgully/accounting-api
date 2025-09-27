@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  accounting-api:
+    build: .
+    container_name: accounting-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY:-default_api_key_123}
+      - DB_HOST=${DB_HOST:-petgully-dbserver.cmzwm2y64qh8.us-east-1.rds.amazonaws.com}
+      - DB_USER=${DB_USER:-admin}
+      - DB_PASS=${DB_PASS:-care6886}
+      - DB_NAME=${DB_NAME:-petgully_db}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ML_THRESHOLD=${ML_THRESHOLD:-0.75}
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - accounting-network
+
+networks:
+  accounting-network:
+    driver: bridge
