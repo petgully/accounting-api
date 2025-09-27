@@ -1,9 +1,10 @@
 // ====== CONFIG ======
-const CLASSIFIER_URL = 'https://accounting-api.52-44-174-19.sslip.io/classify';
-const SYNC_URL       = 'https://accounting-api.52-44-174-19.sslip.io/sync';
-const RULE_STATS_URL = 'https://accounting-api.52-44-174-19.sslip.io/rule-stats';
-const REFRESH_RULES_URL = 'https://accounting-api.52-44-174-19.sslip.io/refresh-rules';
-const API_KEY        = 'supersecret686';   // same value you used in docker run
+// UPDATE THESE URLs TO YOUR LIGHTSAIL INSTANCE IP ADDRESS
+const CLASSIFIER_URL = 'http://YOUR_LIGHTSAIL_IP:8000/classify';
+const SYNC_URL       = 'http://YOUR_LIGHTSAIL_IP:8000/sync';
+const RULE_STATS_URL = 'http://YOUR_LIGHTSAIL_IP:8000/rule-stats';
+const REFRESH_RULES_URL = 'http://YOUR_LIGHTSAIL_IP:8000/refresh-rules';
+const API_KEY        = 'default_api_key_123';   // Change this to your production API key
 
 const SHEET_RAW      = 'Raw';
 const SHEET_REVIEW   = 'Needs_Review';
